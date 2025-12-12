@@ -1,3 +1,4 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -10,6 +11,8 @@ import { FixturesModule } from './fixtures/fixtures.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { GeminiController } from './gemini/gemini.controller';
+import { GeminiService } from './gemini/gemini.service';
 
 @Module({
   imports: [
@@ -19,13 +22,13 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 5432,
+      port: parseInt(process.env.DB_PORT || '5432') || 5432,
       username: process.env.DB_USERNAME || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_NAME || 'bookstore-dev',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true, // set to false in production
-      dropSchema: process.env.NODE_ENV === 'development' && process.env.DB_NAME?.endsWith('-dev') ? true : false,
+      synchronize: true,
+      dropSchema: true,
     }),
     BookCategoryModule,
     BookModule,
@@ -33,13 +36,17 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     UserModule,
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    GeminiController 
+  ],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    GeminiService 
   ],
 })
 export class AppModule {}
